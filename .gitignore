@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# NovaVoice runtime data (generated locally, not for git)
+audio_cache/*.mp3
+records.json
+voices_cache.json
+
+# Windows shortcuts (local only)
+*.lnk
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini

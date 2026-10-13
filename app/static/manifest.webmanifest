@@ -1,0 +1,17 @@
+{
+  "name": "NovaVoice — TTS + STT",
+  "short_name": "NovaVoice",
+  "description": "Natural neural text-to-speech in Uzbek and 150+ languages",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f7",
+  "theme_color": "#ffffff",
+  "lang": "uz",
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

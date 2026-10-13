@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NovaVoice — Text to Speech</title>
+<meta name="description" content="NovaVoice — natural neural voices in Uzbek and 150+ languages. Type, listen, save.">
+<meta property="og:title" content="NovaVoice — Text to Speech">
+<meta property="og:description" content="Turn text into natural speech in Uzbek, English, Russian and 150+ languages.">
+<meta property="og:type" content="website">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<meta name="theme-color" content="#101114">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NovaVoice">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+<style>
+/* ================= NovaVoice workspace · dark neutral professional ================= */
+:root{
+  color-scheme:dark;
+  --bg:#101114;
+  --bg2:#15171C;
+  --card:#1B1D23;
+  --elev:#22252D;
+  --line:#30333D;
+  --txt:#F4F5F7;
+  --sec:#A1A6B3;
+  --mut:#737987;
+  --acc:#8B7CFF;
+  --acc-h:#A094FF;
+  --acc-tint:rgba(139,124,255,.12);
+  --ok:#40C997;
+  --warn:#F0B45B;
+  --err:#F07178;
+  --r-panel:14px;
+  --r-ctl:9px;
+  --r-tag:6px;
+  --font:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Text','Segoe UI',Helvetica,Arial,sans-serif;
+  --tr:150ms ease;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:15px;line-height:1.55;
+  min-height:100vh;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(139,124,255,.32)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
+svg.ic{width:16px;height:16px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- header ---------- */
+.topbar{position:sticky;top:0;z-index:30;background:var(--bg2);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1360px;margin:0 auto;min-height:64px;padding:0 24px;
+  display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;
+  background:linear-gradient(135deg,#6D5EF0,#8B7CFF);color:#fff}
+.mark svg{width:18px;height:18px}
+.brand strong{font-size:16px;font-weight:650;letter-spacing:-.01em}
+.ws{display:flex;align-items:center;gap:16px;margin-left:8px;padding-left:16px;border-left:1px solid var(--line)}
+.ws-title{font-size:13.5px;font-weight:600;color:var(--sec);white-space:nowrap}
+.top-right{margin-left:auto;display:flex;align-items:center;}
+.status-pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;
+  color:var(--sec);background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:7px 13px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:0 0 auto}
+.dot.off{background:var(--err)}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1360px;margin:0 auto;padding:24px 24px 56px}
+.pagehead{margin:2px 0 18px}
+.pagehead h2{font-size:22px;font-weight:650;letter-spacing:-.02em}
+.pagehead p{font-size:13px;color:var(--mut);margin-top:3px}
+.grid{display:grid;grid-template-columns:7fr 5fr;gap:24px;align-items:start}
+.side{display:flex;flex-direction:column;gap:24px;min-width:0}
+
+/* ---------- panels ---------- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-panel);padding:22px}
+.p-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.p-head h3{font-size:16px;font-weight:650;letter-spacing:-.01em}
+.p-head .count{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+.p-sub{font-size:12px;font-weight:600;color:var(--mut);margin:18px 0 10px}
+
+/* ---------- editor ---------- */
+textarea{width:100%;height:260px;resize:vertical;background:var(--bg2);border:1px solid var(--line);
+  border-radius:10px;color:var(--txt);padding:14px 16px;font-size:15.5px;line-height:1.65;
+  font-family:inherit;outline:none;transition:border-color var(--tr),box-shadow var(--tr)}
+textarea::placeholder{color:var(--mut)}
+textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(139,124,255,.18)}
+.meta{display:flex;justify-content:flex-end;margin:9px 1px 0;color:var(--mut);font-size:12px}
+.meta kbd{background:var(--elev);border:1px solid var(--line);border-radius:5px;padding:0 6px;
+  font-size:11px;font-family:inherit;color:var(--sec)}
+
+/* ---------- settings ---------- */
+.settings{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:4px}
+.set-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.set-top label{font-size:12.5px;font-weight:600;color:var(--sec)}
+.set-top output{font-size:12.5px;font-weight:650;color:var(--txt);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;cursor:pointer;--p:50%}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;
+  background:linear-gradient(to right,var(--acc) 0 var(--p),var(--line) var(--p) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:#fff;margin-top:-6px;box-shadow:0 1px 4px rgba(0,0,0,.5);transition:transform var(--tr)}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--acc)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#fff}
+
+/* ---------- actions ---------- */
+.actions{margin-top:20px;display:flex;flex-direction:column;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;
+  border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;transition:var(--tr);transition-property:background,border-color,color,opacity}
+.btn.primary{background:var(--acc);color:#fff;width:100%}
+.btn.primary:hover:not(:disabled){background:var(--acc-h)}
+.btn.primary:disabled{opacity:.55;cursor:wait}
+.actions-sub{display:grid;grid-template-columns:1fr 1fr auto;gap:10px}
+.btn.secondary{background:var(--elev);border-color:var(--line);color:var(--txt)}
+.btn.secondary:hover:not(:disabled){border-color:var(--mut)}
+.btn.secondary:disabled{opacity:.45;cursor:not-allowed;color:var(--mut)}
+.btn.tertiary{background:transparent;color:var(--sec);padding:11px 14px}
+.btn.tertiary:hover{color:var(--txt);background:var(--elev)}
+.namesheet{display:flex;gap:10px;margin-top:10px}
+.namesheet[hidden]{display:none}
+.namesheet input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r-ctl);
+  padding:11px 14px;font-size:14px;font-family:inherit;outline:none;color:var(--txt);transition:border-color var(--tr),box-shadow var(--tr)}
+.namesheet input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(139,124,255,.18)}
+.namesheet .btn{min-height:44px}
+.player{margin-top:14px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;display:none}
+.player.show{display:block}
+.status{font-size:12.5px;color:var(--sec);display:flex;align-items:center;gap:8px}
+.status.err{color:var(--err)}
+.spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--acc);
+  border-radius:50%;animation:sp .8s linear infinite;flex:0 0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+audio{width:100%;margin-top:10px;height:36px}
+
+/* ---------- voices ---------- */
+.fav-label{font-size:11.5px;font-weight:650;color:var(--mut);margin-bottom:8px}
+.fav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.fav button{border:1px solid var(--line);background:var(--bg2);color:var(--sec);border-radius:8px;
+  padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;transition:var(--tr);
+  transition-property:color,border-color,background}
+.fav button:hover{color:var(--txt);border-color:var(--mut)}
+.fav button.active{color:var(--txt);border-color:var(--acc);background:var(--acc-tint)}
+.tools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.field{position:relative;min-width:0}
+.field svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mut);pointer-events:none}
+.field input{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r-ctl);
+  color:var(--txt);padding:10px 12px 10px 34px;font-size:13.5px;outline:none;font-family:inherit;
+  transition:border-color var(--tr),box-shadow var(--tr)}
+.field input::placeholder{color:var(--mut)}
+.field input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(139,124,255,.16)}
+.tools select{background:var(--bg2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23737987' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 11px center;
+  border:1px solid var(--line);border-radius:var(--r-ctl);color:var(--txt);padding:10px 30px 10px 12px;
+  font-size:13px;outline:none;font-family:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;
+  min-width:0;max-width:100%}
+.tools select:focus{border-color:var(--acc)}
+.tools select option{background:var(--elev);color:var(--txt)}
+.vlist{background:var(--bg2);border:1px solid var(--line);border-radius:10px;max-height:430px;
+  overflow-y:auto;padding:6px}
+.vlist::-webkit-scrollbar,.hist::-webkit-scrollbar{width:8px}
+.vlist::-webkit-scrollbar-thumb,.hist::-webkit-scrollbar-thumb{background:#3a3e49;border-radius:99px}
+.v{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 10px 9px 12px;
+  border:none;border-left:2px solid transparent;border-radius:8px;background:transparent;color:var(--txt);
+  cursor:pointer;font-size:14px;transition:background var(--tr),border-color var(--tr)}
+.v:hover{background:rgba(255,255,255,.045)}
+.v.sel{background:var(--acc-tint);border-left-color:var(--acc)}
+.vtile{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:16px;flex:0 0 auto;
+  background:var(--elev);border:1px solid var(--line)}
+.v .txtbox{min-width:0;flex:1}
+.v .nm{font-size:13.5px;font-weight:600;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v .lc{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:var(--r-tag);flex:0 0 auto}
+.v .check{color:var(--acc);opacity:0;flex:0 0 auto;display:grid;place-items:center}
+.v.sel .check{opacity:1}
+.hempty{color:var(--mut);font-size:13px;padding:14px 8px;line-height:1.6;text-align:center}
+
+/* ---------- records ---------- */
+.hist{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
+.rec{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+  cursor:pointer;transition:border-color var(--tr),background var(--tr)}
+.rec:hover{border-color:var(--mut)}
+.rec-top{display:flex;gap:6px;align-items:center}
+.rec-txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:13.5px;font-weight:600}
+.rec-meta{color:var(--mut);font-size:11.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{border:none;background:transparent;color:var(--mut);border-radius:7px;width:30px;height:30px;
+  display:inline-grid;place-items:center;cursor:pointer;flex:0 0 auto;transition:var(--tr);
+  transition-property:color,background}
+.iconbtn:hover{color:var(--txt);background:var(--elev)}
+.iconbtn.del:hover{color:var(--err)}
+.rename{flex:1;min-width:0;background:var(--elev);border:1px solid var(--acc);border-radius:7px;
+  padding:6px 10px;font-size:13px;font-family:inherit;outline:none;color:var(--txt)}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--elev);border:1px solid var(--line);color:var(--txt);padding:11px 20px;border-radius:10px;
+  font-size:13.5px;font-weight:550;opacity:0;transition:opacity .18s,transform .18s;z-index:50;
+  max-width:calc(100vw - 40px);text-align:center;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- responsive ---------- */
+@media(max-width:1024px){
+  .grid{grid-template-columns:1fr}
+  .vlist{max-height:320px}
+}
+@media(max-width:640px){
+  .topbar-in{padding:0 16px;gap:12px}
+  .ws{display:none}
+  .status-pill{font-size:11.5px;padding:6px 11px}
+  .wrap{padding:18px 14px 44px}
+  .panel{padding:18px 16px}
+  .settings{grid-template-columns:1fr;gap:6px}
+  .actions-sub{grid-template-columns:1fr 1fr}
+  .actions-sub .btn.tertiary{grid-column:1/-1;min-height:44px}
+  .tools{grid-template-columns:1fr 1fr}
+  .tools .field{grid-column:1/-1}
+  textarea{height:220px;font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4"/></svg></span>
+      <strong>NovaVoice</strong>
+    </div>
+    <div class="ws"><span class="ws-title">Text to Speech</span></div>
+    <div class="top-right">
+      <div class="status-pill"><span class="dot" id="svcDot"></span><span id="vcount">Connecting…</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pagehead">
+    <h2>Text to Speech</h2>
+    <p>Write text, pick a voice, generate natural speech.</p>
+  </div>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="t-text">
+      <div class="p-head"><h3 id="t-text">Text</h3><span class="count" id="ccount">0 characters</span></div>
+      <label class="vh" for="text" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Text to speak</label>
+      <textarea id="text" placeholder="Type or paste text here…"></textarea>
+      <div class="meta"><span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to generate</span></div>
+
+      <div class="p-sub" style="font-size:12px;font-weight:650;color:var(--mut);margin:20px 0 8px">Voice settings</div>
+      <div class="settings">
+        <div class="set"><div class="set-top"><label for="rate">Speed</label><output id="rateV" for="rate">+0%</output></div><input type="range" id="rate" min="-50" max="100" value="0"></div>
+        <div class="set"><div class="set-top"><label for="pitch">Pitch</label><output id="pitchV" for="pitch">+0Hz</output></div><input type="range" id="pitch" min="-50" max="50" value="0"></div>
+        <div class="set"><div class="set-top"><label for="vol">Volume</label><output id="volV" for="vol">+0%</output></div><input type="range" id="vol" min="-100" max="100" value="0"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="go"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5.5v13l11-6.5z"/></svg><span id="goLabel">Generate Speech</span></button>
+        <div class="actions-sub">
+          <button class="btn secondary" id="sv" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg>Save</button>
+          <button class="btn secondary" id="dl" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4M4 19h16"/></svg>MP3</button>
+          <button class="btn tertiary" id="clear">Clear</button>
+        </div>
+      </div>
+      <div class="namesheet" id="nameSheet" hidden>
+        <input id="recName" maxlength="80" placeholder="Name this recording… e.g. Bedtime story" aria-label="Recording name">
+        <button class="btn primary" id="nameOk" style="width:auto">OK</button>
+        <button class="btn tertiary" id="nameCancel">Cancel</button>
+      </div>
+      <div class="player" id="playerBox">
+        <div class="status" id="status" role="status" aria-live="polite">Ready</div>
+        <audio id="audio" controls preload="none"></audio>
+      </div>
+    </section>
+
+    <div class="side">
+      <section class="panel" aria-labelledby="t-voices">
+        <div class="p-head"><h3 id="t-voices">Voices</h3><span class="count" id="vnum"></span></div>
+        <div class="fav-label">Featured</div>
+        <div class="fav" id="fav"></div>
+        <div class="tools">
+          <div class="field">
+            <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="search" placeholder="Search voices…" aria-label="Search voices">
+          </div>
+          <select id="langFilter" aria-label="Language filter"><option value="">All languages</option></select>
+          <select id="genderFilter" aria-label="Gender filter"><option value="">All</option><option value="Female">Female</option><option value="Male">Male</option></select>
+        </div>
+        <div class="vlist" id="vlist" role="listbox" aria-label="Available voices"><div class="hempty">Loading voices…</div></div>
+      </section>
+      <section class="panel" aria-labelledby="t-rec">
+        <div class="p-head"><h3 id="t-rec">Records</h3><span class="count" id="rcount"></span></div>
+        <div class="hist" id="hist"><div class="hempty">No records yet — generate speech, then save it with a name.</div></div>
+      </section>
+    </div>
+  </div>
+
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const text=$('text'), audio=$('audio'), goBtn=$('go'), goLabel=$('goLabel'), dlBtn=$('dl');
+let ALL=[], SEL='uz-UZ-MadinaNeural', lastBlob=null, lastRecordUrl=null;
+let currentName='', pendingAction=null;
+const FLAGS={'uz':'🇺🇿','en':'🇺🇸','ru':'🇷🇺','tr':'🇹🇷','ar':'🇸🇦','es':'🇪🇸','fr':'🇫🇷','de':'🇩🇪','it':'🇮🇹','zh':'🇨🇳','ja':'🇯🇵','ko':'🇰🇷','hi':'🇮🇳','uk':'🇺🇦','kk':'🇰🇿','ky':'🇰🇬','tg':'🇹🇯','az':'🇦🇿','fa':'🇮🇷','pt':'🇵🇹','nl':'🇳🇱','pl':'🇵🇱','id':'🇮🇩','ms':'🇲🇾','vi':'🇻🇳','th':'🇹🇭'};
+const flag=loc=>{const k=(loc||'').slice(0,2).toLowerCase();return FLAGS[k]||'🌐';};
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
+
+/* ---------- composer ---------- */
+function updCount(){const n=text.value.length;$('ccount').textContent=`${n} characters · ~${Math.ceil(n/15)} sec`;}
+text.addEventListener('input',updCount);updCount();
+function paintRange(el){const p=(el.value-el.min)/(el.max-el.min)*100;el.style.setProperty('--p',p+'%');}
+[['rate','rateV','%'],['pitch','pitchV','Hz'],['vol','volV','%']].forEach(([a,b,u])=>{
+  const el=$(a);
+  const upd=()=>{const v=+el.value;$(b).textContent=(v>=0?'+':'')+v+u;paintRange(el);};
+  el.oninput=upd;upd();
+});
+$('clear').onclick=()=>{text.value='';updCount();text.focus();};
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')speak(false);});
+
+/* ---------- voices ---------- */
+const BEST=['uz-UZ-MadinaNeural','uz-UZ-SardorNeural','en-US-AvaNeural','en-US-AndrewNeural','en-US-EmmaNeural','ru-RU-SvetlanaNeural','ru-RU-DmitryNeural','tr-TR-EmelNeural'];
+const BEST_LABEL={'uz-UZ-MadinaNeural':"🇺🇿 Madina ★",'uz-UZ-SardorNeural':"🇺🇿 Sardor ★",'en-US-AvaNeural':"🇺🇸 Ava ★",'en-US-AndrewNeural':"🇺🇸 Andrew ★",'en-US-EmmaNeural':"🇺🇸 Emma",'ru-RU-SvetlanaNeural':"🇷🇺 Svetlana",'ru-RU-DmitryNeural':"🇷🇺 Dmitry",'tr-TR-EmelNeural':"🇹🇷 Emel"};
+
+async function loadVoices(){
+  try{
+    const r=await fetch('/api/voices');const j=await r.json();ALL=j.voices||[];
+    $('vcount').textContent=`${ALL.length} voices · online`;
+    $('vnum').textContent=ALL.length;
+    const langs=[...new Set(ALL.map(v=>v.Locale))].sort();
+    const lf=$('langFilter');
+    langs.forEach(l=>{const v=ALL.find(x=>x.Locale===l);const o=document.createElement('option');o.value=l;o.textContent=`${flag(l)} ${v? v.LocaleName||l:l}`;lf.appendChild(o);});
+    lf.value='';
+    buildFav();renderList();
+  }catch(e){
+    $('vcount').textContent='Offline';
+    $('svcDot').classList.add('off');
+    $('vlist').innerHTML='<div class="hempty">Could not reach the server.</div>';
+  }
+}
+function buildFav(){
+  const f=$('fav');f.innerHTML='';
+  BEST.forEach(sn=>{if(!ALL.find(v=>v.ShortName===sn))return;const b=document.createElement('button');
+    b.textContent=BEST_LABEL[sn]||sn;if(sn===SEL)b.classList.add('active');
+    b.setAttribute('aria-pressed',sn===SEL?'true':'false');
+    b.onclick=()=>{SEL=sn;buildFav();renderList();};
+    f.appendChild(b);});
+}
+function renderList(){
+  const q=($('search').value||'').toLowerCase(), lf=$('langFilter').value, gf=$('genderFilter').value;
+  const list=ALL.filter(v=>{
+    if(lf&&v.Locale!==lf)return false;if(gf&&v.Gender!==gf)return false;
+    if(q&&!((v.ShortName||'')+' '+(v.FriendlyName||'')+' '+(v.LocaleName||'')+' '+(v.Locale||'')).toLowerCase().includes(q))return false;
+    return true;});
+  const box=$('vlist');box.innerHTML=list.length?'':'<div class="hempty">No voices match.</div>';
+  list.slice(0,300).forEach(v=>{
+    const b=document.createElement('button');
+    b.className='v'+(v.ShortName===SEL?' sel':'');
+    b.setAttribute('role','option');
+    b.setAttribute('aria-selected',v.ShortName===SEL?'true':'false');
+    const short=(v.FriendlyName||v.ShortName).replace('Microsoft ','').replace(' Online (Natural)','');
+    b.setAttribute('aria-label',short+', '+(v.LocaleName||v.Locale||''));
+    b.innerHTML=`<span class="vtile">${flag(v.Locale)}</span><span class="txtbox"><span class="nm">${short}</span><span class="lc">${v.LocaleName||v.Locale} · ${v.Gender==='Female'?'Female':'Male'}</span></span><span class="check"><svg class="ic" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>`;
+    // spans inside button need block layout
+    b.querySelector('.txtbox').style.display='block';
+    b.querySelector('.nm').style.display='block';
+    b.querySelector('.lc').style.display='block';
+    b.onclick=()=>{SEL=v.ShortName;buildFav();renderList();};
+    box.appendChild(b);});
+}
+$('search').oninput=renderList;$('langFilter').onchange=renderList;$('genderFilter').onchange=renderList;
+
+/* ---------- speak ---------- */
+function setBusy(on){
+  goBtn.disabled=on;
+  goLabel.textContent=on?'Generating…':'Generate Speech';
+}
+async function speak(asDownload){
+  const t=text.value.trim();
+  if(!t){toast('Type some text first');text.focus();return;}
+  setBusy(true);
+  $('playerBox').classList.add('show');
+  const st=$('status');st.classList.remove('err');
+  st.innerHTML='<span class="spin"></span> Generating speech ('+SEL+')…';
+  try{
+    const url=asDownload?'/api/download':'/api/speak';
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:t,voice:SEL,rate:+$('rate').value,pitch:+$('pitch').value,volume:+$('vol').value})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||('HTTP '+r.status));}
+    const blob=await r.blob();lastBlob=blob;
+    const objUrl=URL.createObjectURL(blob);
+    if(asDownload){const a=document.createElement('a');a.href=objUrl;a.download='NovaVoice-'+SEL+'.mp3';a.click();toast('MP3 downloaded');}
+    else{audio.src=objUrl;audio.play().catch(()=>{});dlBtn.disabled=false;$('sv').disabled=false;lastRecordUrl=null;currentName='';st.textContent='Ready — '+SEL;toast('Speech ready — name it with Save / MP3');}
+  }catch(e){st.textContent='Error: '+e.message;st.classList.add('err');toast(e.message);}
+  finally{setBusy(false);}
+}
+goBtn.onclick=()=>speak(false);
+
+/* ---------- named Save / Download ---------- */
+function fileName(n){return ((n||'').replace(/[\\/:*?"<>|]/g,'').trim()||'novavoice')+'.mp3';}
+function openSheet(act){
+  if(!lastBlob && !lastRecordUrl){toast('Generate speech first');return;}
+  pendingAction=act;
+  if(!currentName){
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    $('recName').value=(SEL.split('-').pop()||'voice')+' '+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes());
+  }else $('recName').value=currentName;
+  $('nameSheet').hidden=false;$('recName').focus();$('recName').select();
+}
+function closeSheet(){$('nameSheet').hidden=true;pendingAction=null;}
+async function confirmSheet(){
+  const name=$('recName').value.trim();
+  if(!name){toast('Enter a name');$('recName').focus();return;}
+  currentName=name;closeSheet();
+  if(pendingAction==='dl'){
+    const src=lastBlob?URL.createObjectURL(lastBlob):lastRecordUrl;
+    if(src){const a=document.createElement('a');a.href=src;a.download=fileName(name);a.click();toast('MP3 downloaded: '+name);}
+  }else if(pendingAction==='save'){
+    if(!lastBlob){toast('Nothing new to save');return;}
+    const fd=new FormData();
+    fd.append('audio',lastBlob,'voice.mp3');fd.append('name',name);
+    fd.append('text',text.value.trim());fd.append('voice',SEL);
+    fd.append('rate',$('rate').value);fd.append('pitch',$('pitch').value);fd.append('volume',$('vol').value);
+    toast('Saving…');
+    try{
+      const r=await fetch('/api/records',{method:'POST',body:fd});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||('HTTP '+r.status));}
+      loadRecords();toast('Saved: '+name);
+    }catch(e){toast('Save failed: '+e.message);}
+  }
+}
+$('sv').onclick=()=>openSheet('save');
+$('nameOk').onclick=confirmSheet;
+$('nameCancel').onclick=closeSheet;
+$('recName').onkeydown=(e)=>{if(e.key==='Enter')confirmSheet();if(e.key==='Escape')closeSheet();};
+dlBtn.onclick=()=>{
+  if(currentName){
+    const src=lastBlob?URL.createObjectURL(lastBlob):lastRecordUrl;
+    if(src){const a=document.createElement('a');a.href=src;a.download=fileName(currentName);a.click();}
+    else speak(true);
+  }
+  else if(lastBlob||lastRecordUrl) openSheet('dl');
+  else speak(true);
+};
+
+/* ---------- records library ---------- */
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtSize(b){if(b==null)return '';if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(2)+' MB';}
+function fmtDate(iso){try{const d=new Date(iso);return d.toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return iso||'';}}
+const SVG_DL='<svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4M4 19h16"/></svg>';
+const SVG_PEN='<svg class="ic" viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m13.5 6.5 3 3"/></svg>';
+const SVG_DEL='<svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13"/></svg>';
+async function loadRecords(){
+  const h=$('hist');
+  try{
+    const r=await fetch('/api/records');const j=await r.json();
+    const recs=j.records||[];
+    $('rcount').textContent=recs.length?recs.length:'';
+    if(!recs.length){h.innerHTML='<div class="hempty">No records yet — generate speech, then save it with a name.</div>';return;}
+    h.innerHTML='';
+    recs.forEach(rec=>{
+      const dispName=rec.name||((rec.text||'').slice(0,50)+(((rec.text||'').length>50)?'…':'')||'Untitled');
+      const d=document.createElement('div');d.className='rec';
+      d.innerHTML=`<div class="rec-top"><span class="rec-txt" title="${esc(rec.text||'')}">${esc(dispName)}</span><button class="iconbtn" data-act="ren" title="Rename" aria-label="Rename">${SVG_PEN}</button><button class="iconbtn" data-act="dl" title="Download" aria-label="Download">${SVG_DL}</button><button class="iconbtn del" data-act="del" title="Delete" aria-label="Delete">${SVG_DEL}</button></div><div class="rec-meta">${esc(rec.voice)} · ${fmtDate(rec.created)} · ${fmtSize(rec.size)}</div>`;
+      d.onclick=(e)=>{
+        const btn=e.target.closest('button');
+        const act=btn?btn.dataset.act:null;
+        if(act==='del'){e.stopPropagation();delRecord(rec.id);return;}
+        if(act==='dl'){e.stopPropagation();dlRecord(rec);return;}
+        if(act==='ren'){e.stopPropagation();renameInline(d,rec);return;}
+        useRecord(rec);
+      };
+      h.appendChild(d);
+    });
+  }catch(e){h.innerHTML='<div class="hempty">Records unavailable.</div>';}
+}
+function dlRecord(rec){
+  const a=document.createElement('a');
+  a.href='/audio/'+encodeURIComponent(rec.file);
+  a.download=fileName(rec.name||rec.voice);a.click();
+}
+async function delRecord(id){
+  try{await fetch('/api/records/'+encodeURIComponent(id),{method:'DELETE'});}catch(e){}
+  loadRecords();
+}
+function renameInline(row,rec){
+  const sp=row.querySelector('.rec-txt');
+  const inp=document.createElement('input');
+  inp.className='rename';inp.value=rec.name||'';inp.maxLength=80;inp.placeholder='Name…';
+  inp.setAttribute('aria-label','Record name');
+  sp.replaceWith(inp);inp.focus();inp.select();
+  let done=false;
+  const commit=async(save)=>{
+    if(done)return;done=true;
+    if(save&&inp.value.trim()&&inp.value.trim()!==(rec.name||'')){
+      try{await fetch('/api/records/'+encodeURIComponent(rec.id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:inp.value.trim()})});}catch(e){}
+    }
+    loadRecords();
+  };
+  inp.onkeydown=(e)=>{if(e.key==='Enter')commit(true);if(e.key==='Escape')commit(false);e.stopPropagation();};
+  inp.onblur=()=>commit(true);
+  inp.onclick=(e)=>e.stopPropagation();
+}
+function setSlider(id,val){
+  const el=$(id); if(val==null||!el) return;
+  el.value=val; el.dispatchEvent(new Event('input'));
+}
+function useRecord(rec){
+  if(rec.text){text.value=rec.text;updCount();}
+  if(rec.voice){SEL=rec.voice;buildFav();renderList();}
+  setSlider('rate',rec.rate); setSlider('pitch',rec.pitch); setSlider('vol',rec.volume);
+  lastBlob=null;lastRecordUrl='/audio/'+encodeURIComponent(rec.file);
+  currentName=rec.name||'';
+  audio.src=lastRecordUrl;
+  $('playerBox').classList.add('show');
+  dlBtn.disabled=false;$('sv').disabled=false;
+  audio.play().catch(()=>{});
+  $('status').textContent='Playing record: '+(rec.name||rec.voice);
+  toast('Record loaded');
+}
+
+/* ---------- PWA ---------- */
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/static/sw.js').catch(()=>{});}
+
+loadVoices();
+loadRecords();
+</script>
+</body>
+</html>
