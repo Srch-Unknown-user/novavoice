@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="novavoice-logo.png" width="120" alt="NovaVoice logo">
+  <img src="app/novavoice-logo.png" width="120" alt="NovaVoice logo">
 </p>
 
 <h1 align="center">NovaVoice</h1>
@@ -44,13 +44,13 @@ Then open `http://127.0.0.1:5005`. On the same Wi-Fi, phones can use `http://<yo
 
 ```
 NovaVoice/                  # repo root
-├── NovaVoice TTS.lnk       # Windows double-click launcher (local only)
+├── README.md / LICENSE
+├── NovaVoice TTS.lnk       # Windows double-click launcher (local only, not in git)
 ├── .github/FUNDING.yml     # sponsorship links (edit me)
 └── app/                    # the application
     ├── app.py              # Flask backend + edge-tts
     ├── requirements.txt
     ├── START-TTS.bat       # Windows launcher backend
-    ├── LICENSE / README.md
     ├── novavoice-logo.png  # logo + icons (.ico)
     ├── static/
     │   ├── index.html      # the whole UI (no framework)
