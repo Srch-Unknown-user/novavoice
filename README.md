@@ -84,8 +84,7 @@ NovaVoice/                  # repo root
 If this project is useful to you, you can support its development:
 
 - ⭐ Star the repo — it helps more than you think
-- ☕ [Buy Me a Coffee](https://www.buymeacoffee.com/) <!-- put your link here -->
-- 💜 GitHub Sponsors — enable it in `.github/FUNDING.yml` (uncomment your username)
+- 💜 [Sponsor on GitHub](https://github.com/sponsors/Srch-Unknown-user) — support ongoing development
 
 ## License
 
