@@ -85,6 +85,7 @@ If this project is useful to you, you can support its development:
 
 - ⭐ Star the repo — it helps more than you think
 - 💜 [Sponsor on GitHub](https://github.com/sponsors/Srch-Unknown-user) — support ongoing development
+- 💎 Donate USDT (**TON network only**): `UQD4stkVdOoKw79AwGFDeHLURUg8jur2ZPCv7f-bKQ9KEY2S`
 
 ## License
 
